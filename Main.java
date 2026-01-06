@@ -8,9 +8,10 @@ public class Main extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private SortPanel[] sortPanels = new SortPanel[2];
+    // Sadece 2 panel karşılaştırıyoruz
+    private SortPanel[] sortPanels = new SortPanel[2]; 
     private static int size = 100;
-    private int sleepTime = 2;
+    private int sleepTime = 10; // Radix hızlı olduğu için biraz yavaşlattım (2 -> 10)
     private String animationName = "";
 
     private JComboBox<String> algo1Box;
@@ -25,23 +26,23 @@ public class Main extends JPanel {
         // ---------- CONTROL PANEL ----------
         JPanel controlPanel = new JPanel();
 
-        algo1Box = new JComboBox<>(new String[]{
-                "Heap Sort",
-                "Shell Sort"
+        // DÜZELTME 1: Virgüller eklendi
+        String[] algorithms = {
+            "Heap Sort",
+            "Shell Sort",
+            "Radix Sort"
+        };
+
+        algo1Box = new JComboBox<>(algorithms);
+        algo2Box = new JComboBox<>(algorithms);
+
+        dataBox = new JComboBox<>(new String[]{
+                "Random",
+                "Reversed",
+                "Almost Sorted",
+                "Few Unique"
         });
 
-        algo2Box = new JComboBox<>(new String[]{
-                "Heap Sort",
-                "Shell Sort"
-        });
-		        dataBox = new JComboBox<>(new String[]{
-		        "Random",
-		        "Reversed",
-		        "Almost Sorted",
-		        "Few Unique"
-		});
-
-		
         startButton = new JButton("Start");
 
         controlPanel.add(new JLabel("Algorithm 1:"));
@@ -49,8 +50,8 @@ public class Main extends JPanel {
         controlPanel.add(new JLabel("Algorithm 2:"));
         controlPanel.add(algo2Box);
         controlPanel.add(new JLabel("Data:"));
-		controlPanel.add(dataBox);
-		controlPanel.add(startButton);
+        controlPanel.add(dataBox);
+        controlPanel.add(startButton);
 
         add(controlPanel, BorderLayout.NORTH);
 
@@ -74,8 +75,10 @@ public class Main extends JPanel {
                 return new HeapSortPanel(" Heap Sort ", sleepTime, width, height);
             case "Shell Sort":
                 return new ShellSortPanel(" Shell Sort ", sleepTime, width, height);
+            case "Radix Sort":
+                return new RadixSortPanel(" Radix Sort ", sleepTime, width, height);
             default:
-                throw new IllegalArgumentException("Unknown algorithm");
+                throw new IllegalArgumentException("Unknown algorithm: " + name);
         }
     }
 
@@ -87,6 +90,8 @@ public class Main extends JPanel {
         int width = screenSize.width / 2;
         int height = screenSize.height / 2;
 
+        // DÜZELTME 2: 3. paneli sildim, çünkü dizi boyutu 2.
+        // Dropdown'dan seçilenleri alıyoruz:
         sortPanels[0] = createSortPanel(
                 (String) algo1Box.getSelectedItem(), width, height);
         sortPanels[1] = createSortPanel(
@@ -100,50 +105,49 @@ public class Main extends JPanel {
         sortPanelHolder.revalidate();
         sortPanelHolder.repaint();
 
-		String dataType = (String) dataBox.getSelectedItem();
-		int[] list = generateData(dataType);
+        String dataType = (String) dataBox.getSelectedItem();
+        int[] list = generateData(dataType);
 
-		new Thread(() -> beginAnimation(dataType, list)).start();
-
+        new Thread(() -> beginAnimation(dataType, list)).start();
     }
 
     private int[] generateData(String type) {
-	    int[] list = new int[size];
+        int[] list = new int[size];
 
-	    switch (type) {
-	        case "Random":
-	            for (int i = 0; i < size; i++) list[i] = i + 1;
-	            shuffle(list);
-	            break;
+        switch (type) {
+            case "Random":
+                for (int i = 0; i < size; i++) list[i] = i + 1;
+                shuffle(list);
+                break;
 
-	        case "Reversed":
-	            for (int i = 0; i < size; i++) list[i] = size - i;
-	            break;
+            case "Reversed":
+                for (int i = 0; i < size; i++) list[i] = size - i;
+                break;
 
-	        case "Almost Sorted":
-	            for (int i = 0; i < size / 2; i++) list[i] = i + 1;
-	            for (int i = size / 2; i < size; i++) list[i] = i + 2;
-	            list[size - 1] = size / 2 + 1;
-	            break;
+            case "Almost Sorted":
+                for (int i = 0; i < size / 2; i++) list[i] = i + 1;
+                for (int i = size / 2; i < size; i++) list[i] = i + 2;
+                list[size - 1] = size / 2 + 1;
+                break;
 
-	        case "Few Unique":
-	            for (int i = 0; i < size; i++) {
-	                list[i] = (1 + i / (size / 4)) * (size / 4);
-	            }
-	            shuffle(list);
-	            break;
-	    }
-	    return list;
-	}
+            case "Few Unique":
+                for (int i = 0; i < size; i++) {
+                    list[i] = (1 + i / (size / 4)) * (size / 4);
+                }
+                shuffle(list);
+                break;
+        }
+        return list;
+    }
 
-	private void shuffle(int[] list) {
-	    for (int i = 0; i < list.length; i++) {
-	        int j = (int) (Math.random() * list.length);
-	        int tmp = list[i];
-	        list[i] = list[j];
-	        list[j] = tmp;
-	    }
-	}
+    private void shuffle(int[] list) {
+        for (int i = 0; i < list.length; i++) {
+            int j = (int) (Math.random() * list.length);
+            int tmp = list[i];
+            list[i] = list[j];
+            list[j] = tmp;
+        }
+    }
 
 
     // ---------- HOLDER ----------
